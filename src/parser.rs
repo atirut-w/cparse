@@ -29,7 +29,11 @@ impl<'a> Parser<'a> {
         let body = self.parse_statement()?;
         self.expect_token(&TokenKind::RightBrace)?;
 
-        Ok(FunctionDefinition { name, body })
+        Ok(FunctionDefinition { 
+            name,
+            declarations: vec![], // No declarations parsed yet
+            body: vec![body], // Body is a single statement for now
+        })
     }
 
     fn parse_statement(&mut self) -> Result<Statement, Error> {
@@ -173,16 +177,26 @@ pub struct TranslationUnit {
 #[derive(Debug)]
 pub struct FunctionDefinition {
     pub name: String,
-    pub body: Statement,
+    pub declarations: Vec<Declaration>,
+    pub body: Vec<Statement>,
+}
+
+#[derive(Debug)]
+pub struct Declaration {
+    pub name: String,
+    pub init: Option<Expression>,
 }
 
 #[derive(Debug)]
 pub enum Statement {
     Return(Expression),
+    Expression(Expression),
+    Null,
 }
 
 #[derive(Debug)]
 pub enum Expression {
+    Identifier(String),
     IntConstant(i64),
     UnaryOp {
         op: UnaryOperator,
@@ -191,6 +205,10 @@ pub enum Expression {
     BinaryExpression {
         left: Box<Expression>,
         op: BinaryOperator,
+        right: Box<Expression>,
+    },
+    Assignment {
+        left: Box<Expression>,
         right: Box<Expression>,
     },
 }
