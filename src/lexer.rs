@@ -133,10 +133,7 @@ impl<'a> Lexer<'a> {
                     self.next_char();
                     TokenKind::EqEq
                 } else {
-                    return Err(Error {
-                        message: "Unexpected character: '='".to_string(),
-                        span: start_position.until(&self.position),
-                    });
+                    TokenKind::Eq
                 }
             }
             '<' => {
@@ -263,6 +260,7 @@ pub enum TokenKind {
     LtEq,
     Gt,
     GtEq,
+    Eq,
 
     EOF,
 }
