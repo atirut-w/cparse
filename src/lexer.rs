@@ -173,7 +173,7 @@ pub struct Token {
     pub span: Range<SourcePosition>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum TokenKind {
     Identifier(String),
     IntConstant(i64),
