@@ -31,23 +31,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_lexer_simple() {
+    fn simple() {
         let input =
             std::fs::read_to_string("tests/simple.c").expect("Failed to read test input file");
-        let mut lexer = lexer::Lexer::new(&input);
-
-        loop {
-            match lexer.next_token() {
-                Ok(token) => {
-                    println!("{:?}", token);
-                    if token.kind == lexer::TokenKind::EOF {
-                        break;
-                    }
-                }
-                Err(e) => {
-                    panic!("Lexer error: {:?}", e);
-                }
-            }
-        }
+        let lexer = lexer::Lexer::new(&input);
+        let mut parser = parser::Parser::new(lexer);
+        let ast = parser
+            .parse_translation_unit()
+            .expect("Failed to parse translation unit");
+        println!("{:#?}", ast);
     }
 }
