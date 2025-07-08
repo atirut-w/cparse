@@ -154,6 +154,13 @@ impl<'a> Lexer<'a> {
     fn peek_char(&self) -> Option<char> {
         self.input[self.position.offset..].chars().next()
     }
+
+    pub fn peek_token(&mut self) -> Result<Token, Error> {
+        let current_position = self.position.clone();
+        let token = self.next_token();
+        self.position = current_position;
+        token
+    }
 }
 
 #[derive(Debug)]

@@ -30,14 +30,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn simple() {
-        let input =
-            std::fs::read_to_string("tests/simple.c").expect("Failed to read test input file");
-        let lexer = lexer::Lexer::new(&input);
-        let mut parser = parser::Parser::new(lexer);
-        let ast = parser
-            .parse_translation_unit()
-            .expect("Failed to parse translation unit");
-        println!("{:#?}", ast);
+    fn test() {
+        let tests = std::fs::read_dir("tests").expect("Failed to read tests directory");
+        for entry in tests {
+            let path = entry.expect("Failed to read entry").path();
+            if path.extension().and_then(|s| s.to_str()) == Some("c") {
+                let input = std::fs::read_to_string(&path)
+                    .expect("Failed to read test input file");
+                let lexer = lexer::Lexer::new(&input);
+                let mut parser = parser::Parser::new(lexer);
+                match parser.parse_translation_unit() {
+                    Ok(ast) => println!("Parsed AST for {}: {:#?}", path.display(), ast),
+                    Err(e) => panic!("Error parsing {}: {}", path.display(), e.message),
+                }
+            }
+        }
     }
 }

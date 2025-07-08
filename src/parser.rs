@@ -42,10 +42,29 @@ impl<'a> Parser<'a> {
         let token = self.lexer.next_token()?;
         match token.kind {
             TokenKind::IntConstant(value) => Ok(Expression::IntConstant(value)),
-            _ => Err(Error {
-                message: format!("Expected an integer constant, found {:?}", token.kind),
-                span: token.span,
-            }),
+            TokenKind::Tilde | TokenKind::Minus => {
+                let operator = match token.kind {
+                    TokenKind::Tilde => UnaryOperator::Complement,
+                    TokenKind::Minus => UnaryOperator::Negate,
+                    _ => unreachable!(),
+                };
+                let inner = self.parse_expression()?;
+                Ok(Expression::UnaryOp {
+                    op: operator,
+                    expr: Box::new(inner),
+                })
+            }
+            TokenKind::LeftParen => {
+                let inner = self.parse_expression()?;
+                self.expect_token(&TokenKind::RightParen)?;
+                Ok(inner)
+            }
+            _ => {
+                Err(Error {
+                    message: format!("Malformed expression"),
+                    span: token.span,
+                })
+            }
         }
     }
 
@@ -91,4 +110,14 @@ pub enum Statement {
 #[derive(Debug)]
 pub enum Expression {
     IntConstant(i64),
+    UnaryOp {
+        op: UnaryOperator,
+        expr: Box<Expression>,
+    },
+}
+
+#[derive(Debug)]
+pub enum UnaryOperator {
+    Complement,
+    Negate,
 }
