@@ -41,7 +41,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self, min_prec: u8) -> Result<Expression, Error> {
-        let mut left = Expression::Factor(self.parse_factor()?);
+        let mut left = self.parse_factor()?;
         let mut next = self.lexer.peek_token()?;
         let prec = HashMap::from([
             (TokenKind::Asterisk, 50),
@@ -72,26 +72,26 @@ impl<'a> Parser<'a> {
         Ok(left)
     }
 
-    fn parse_factor(&mut self) -> Result<Factor, Error> {
+    fn parse_factor(&mut self) -> Result<Expression, Error> {
         let token = self.lexer.peek_token()?;
         match token.kind {
             TokenKind::IntConstant(value) => {
                 self.lexer.next_token()?; // consume the token
-                Ok(Factor::IntConstant(value))
+                Ok(Expression::IntConstant(value))
             }
-            TokenKind::Tilde | TokenKind::Minus => {
+            TokenKind::Tilde | TokenKind::Minus | TokenKind::Not => {
                 let op = self.parse_unary_operator()?;
                 let inner = self.parse_factor()?;
-                Ok(Factor::UnaryOp {
+                Ok(Expression::UnaryOp {
                     op,
-                    expr: Box::new(Expression::Factor(inner)),
+                    expr: Box::new(inner),
                 })
             }
             TokenKind::LeftParen => {
                 self.lexer.next_token()?; // consume the left paren
                 let inner = self.parse_expression(0)?;
                 self.expect_token(&TokenKind::RightParen)?;
-                Ok(Factor::UnaryOp {
+                Ok(Expression::UnaryOp {
                     op: UnaryOperator::Complement, // This will need proper handling
                     expr: Box::new(inner),
                 })
@@ -174,20 +174,15 @@ pub enum Statement {
 
 #[derive(Debug)]
 pub enum Expression {
-    Factor(Factor),
-    BinaryExpression {
-        left: Box<Expression>,
-        op: BinaryOperator,
-        right: Box<Expression>,
-    },
-}
-
-#[derive(Debug)]
-pub enum Factor {
     IntConstant(i64),
     UnaryOp {
         op: UnaryOperator,
         expr: Box<Expression>,
+    },
+    BinaryExpression {
+        left: Box<Expression>,
+        op: BinaryOperator,
+        right: Box<Expression>,
     },
 }
 
