@@ -1,6 +1,5 @@
 use std::ops::Range;
 
-pub mod ast;
 pub mod lexer;
 pub mod parser;
 

@@ -1,5 +1,6 @@
 use crate::{
-    ast::{Expression, FunctionDefinition, Statement, TranslationUnit}, lexer::{Lexer, TokenKind}, Error
+    Error,
+    lexer::{Lexer, TokenKind},
 };
 
 pub struct Parser<'a> {
@@ -26,10 +27,7 @@ impl<'a> Parser<'a> {
         let body = self.parse_statement()?;
         self.expect_token(&TokenKind::RightBrace)?;
 
-        Ok(FunctionDefinition {
-            name,
-            body,
-        })
+        Ok(FunctionDefinition { name, body })
     }
 
     fn parse_statement(&mut self) -> Result<Statement, Error> {
@@ -72,4 +70,25 @@ impl<'a> Parser<'a> {
             }),
         }
     }
+}
+
+#[derive(Debug)]
+pub struct TranslationUnit {
+    pub function_definition: FunctionDefinition,
+}
+
+#[derive(Debug)]
+pub struct FunctionDefinition {
+    pub name: String,
+    pub body: Statement,
+}
+
+#[derive(Debug)]
+pub enum Statement {
+    Return(Expression),
+}
+
+#[derive(Debug)]
+pub enum Expression {
+    IntConstant(i64),
 }
