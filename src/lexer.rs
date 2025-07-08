@@ -84,6 +84,16 @@ impl<'a> Lexer<'a> {
             '{' => TokenKind::LeftBrace,
             '}' => TokenKind::RightBrace,
             ';' => TokenKind::Semicolon,
+            '~' => TokenKind::Tilde,
+            '-' => {
+                if self.peek_char() == Some('-') {
+                    self.next_char(); // Consume the second '-'
+                    TokenKind::MinusMinus
+                } else {
+                    TokenKind::Minus
+                }
+            }
+
             _ => {
                 return Err(Error {
                     message: format!("Unexpected character: '{}'", ch),
@@ -156,12 +166,19 @@ pub struct Token {
 pub enum TokenKind {
     Identifier(String),
     IntConstant(i64),
+
     Int,
+
     Return,
+
     LeftParen,
     RightParen,
     LeftBrace,
     RightBrace,
     Semicolon,
+    Tilde,
+    Minus,
+    MinusMinus,
+
     EOF,
 }
