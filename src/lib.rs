@@ -1,6 +1,8 @@
 use std::ops::Range;
 
+pub mod ast;
 pub mod lexer;
+pub mod parser;
 
 #[derive(Debug, Clone)]
 pub struct SourcePosition {
@@ -33,7 +35,7 @@ mod tests {
         let input =
             std::fs::read_to_string("tests/simple.c").expect("Failed to read test input file");
         let mut lexer = lexer::Lexer::new(&input);
-        
+
         loop {
             match lexer.next_token() {
                 Ok(token) => {
