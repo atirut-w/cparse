@@ -49,6 +49,14 @@ impl<'a> Parser<'a> {
             (TokenKind::Percent, 50),
             (TokenKind::Plus, 45),
             (TokenKind::Minus, 45),
+            (TokenKind::Lt, 35),
+            (TokenKind::LtEq, 35),
+            (TokenKind::Gt, 35),
+            (TokenKind::GtEq, 35),
+            (TokenKind::EqEq, 30),
+            (TokenKind::Neq, 30),
+            (TokenKind::And, 10),
+            (TokenKind::Or, 5),
         ]);
 
         while matches!(
@@ -58,6 +66,14 @@ impl<'a> Parser<'a> {
                 | TokenKind::Asterisk
                 | TokenKind::Slash
                 | TokenKind::Percent
+                | TokenKind::Lt
+                | TokenKind::LtEq
+                | TokenKind::Gt
+                | TokenKind::GtEq
+                | TokenKind::EqEq
+                | TokenKind::Neq
+                | TokenKind::And
+                | TokenKind::Or
         ) && prec.get(&next.kind).unwrap() >= &min_prec
         {
             let op = self.parse_binary_operator()?;
@@ -111,6 +127,7 @@ impl<'a> Parser<'a> {
         match token.kind {
             TokenKind::Tilde => Ok(UnaryOperator::Complement),
             TokenKind::Minus => Ok(UnaryOperator::Negate),
+            TokenKind::Not => Ok(UnaryOperator::Not),
             _ => Err(Error {
                 message: format!("Expected unary operator, found {:?}", token.kind),
                 span: token.span,
@@ -126,6 +143,14 @@ impl<'a> Parser<'a> {
             TokenKind::Asterisk => Ok(BinaryOperator::Multiply),
             TokenKind::Slash => Ok(BinaryOperator::Divide),
             TokenKind::Percent => Ok(BinaryOperator::Modulo),
+            TokenKind::Lt => Ok(BinaryOperator::Lt),
+            TokenKind::LtEq => Ok(BinaryOperator::LtEq),
+            TokenKind::Gt => Ok(BinaryOperator::Gt),
+            TokenKind::GtEq => Ok(BinaryOperator::GtEq),
+            TokenKind::EqEq => Ok(BinaryOperator::EqEq),
+            TokenKind::Neq => Ok(BinaryOperator::Neq),
+            TokenKind::And => Ok(BinaryOperator::And),
+            TokenKind::Or => Ok(BinaryOperator::Or),
             _ => Err(Error {
                 message: format!("Expected binary operator, found {:?}", token.kind),
                 span: token.span,
@@ -190,6 +215,7 @@ pub enum Expression {
 pub enum UnaryOperator {
     Complement,
     Negate,
+    Not,
 }
 
 #[derive(Debug)]
@@ -199,4 +225,12 @@ pub enum BinaryOperator {
     Multiply,
     Divide,
     Modulo,
+    Lt,
+    LtEq,
+    Gt,
+    GtEq,
+    EqEq,
+    Neq,
+    And,
+    Or,
 }
