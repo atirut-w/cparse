@@ -59,23 +59,7 @@ impl<'a> Parser<'a> {
             (TokenKind::Or, 5),
         ]);
 
-        while matches!(
-            next.kind,
-            TokenKind::Plus
-                | TokenKind::Minus
-                | TokenKind::Asterisk
-                | TokenKind::Slash
-                | TokenKind::Percent
-                | TokenKind::Lt
-                | TokenKind::LtEq
-                | TokenKind::Gt
-                | TokenKind::GtEq
-                | TokenKind::EqEq
-                | TokenKind::Neq
-                | TokenKind::And
-                | TokenKind::Or
-        ) && prec.get(&next.kind).unwrap() >= &min_prec
-        {
+        while prec.contains_key(&next.kind) && prec.get(&next.kind).unwrap() >= &min_prec {
             let op = self.parse_binary_operator()?;
             let right = self.parse_expression(prec.get(&next.kind).unwrap() + 1)?;
             left = Expression::BinaryExpression {
