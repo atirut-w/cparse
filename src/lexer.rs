@@ -65,7 +65,7 @@ impl<'a> Lexer<'a> {
                     HashMap::from([("int", TokenKind::Int), ("return", TokenKind::Return)]);
                 let mut identifier = ch.to_string();
 
-                while let Some(next_ch) = self.peek_char() {
+                while let Some(_next_ch) = self.peek_char() {
                     if !self.is_at_word_boundary() {
                         identifier.push(self.next_char().unwrap());
                     } else {
