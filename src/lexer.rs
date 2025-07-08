@@ -115,7 +115,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn next_char(&mut self) -> Option<char> {
+    fn next_char(&mut self) -> Option<char> {
         if self.position.offset < self.input.len() {
             let ch = self.input[self.position.offset..].chars().next()?;
             self.position.offset += ch.len_utf8();
@@ -141,7 +141,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn peek_char(&self) -> Option<char> {
+    fn peek_char(&self) -> Option<char> {
         self.input[self.position.offset..].chars().next()
     }
 }
