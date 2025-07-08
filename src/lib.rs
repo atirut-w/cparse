@@ -35,8 +35,7 @@ mod tests {
         for entry in tests {
             let path = entry.expect("Failed to read entry").path();
             if path.extension().and_then(|s| s.to_str()) == Some("c") {
-                let input = std::fs::read_to_string(&path)
-                    .expect("Failed to read test input file");
+                let input = std::fs::read_to_string(&path).expect("Failed to read test input file");
                 let lexer = lexer::Lexer::new(&input);
                 let mut parser = parser::Parser::new(lexer);
                 match parser.parse_translation_unit() {
