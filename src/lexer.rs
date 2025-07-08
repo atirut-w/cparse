@@ -98,6 +98,64 @@ impl<'a> Lexer<'a> {
             '/' => TokenKind::Slash,
             '%' => TokenKind::Percent,
 
+            '!' => {
+                if self.peek_char() == Some('=') {
+                    self.next_char();
+                    TokenKind::Neq
+                } else {
+                    TokenKind::Not
+                }
+            }
+            '&' => {
+                if self.peek_char() == Some('&') {
+                    self.next_char();
+                    TokenKind::And
+                } else {
+                    return Err(Error {
+                        message: "Unexpected character: '&'".to_string(),
+                        span: start_position.until(&self.position),
+                    });
+                }
+            }
+            '|' => {
+                if self.peek_char() == Some('|') {
+                    self.next_char();
+                    TokenKind::Or
+                } else {
+                    return Err(Error {
+                        message: "Unexpected character: '|'".to_string(),
+                        span: start_position.until(&self.position),
+                    });
+                }
+            }
+            '=' => {
+                if self.peek_char() == Some('=') {
+                    self.next_char();
+                    TokenKind::EqEq
+                } else {
+                    return Err(Error {
+                        message: "Unexpected character: '='".to_string(),
+                        span: start_position.until(&self.position),
+                    });
+                }
+            }
+            '<' => {
+                if self.peek_char() == Some('=') {
+                    self.next_char();
+                    TokenKind::LtEq
+                } else {
+                    TokenKind::Lt
+                }
+            }
+            '>' => {
+                if self.peek_char() == Some('=') {
+                    self.next_char();
+                    TokenKind::GtEq
+                } else {
+                    TokenKind::Gt
+                }
+            }
+
             _ => {
                 return Err(Error {
                     message: format!("Unexpected character: '{}'", ch),
@@ -195,6 +253,16 @@ pub enum TokenKind {
     Asterisk,
     Slash,
     Percent,
+
+    Not,
+    And,
+    Or,
+    EqEq,
+    Neq,
+    Lt,
+    LtEq,
+    Gt,
+    GtEq,
 
     EOF,
 }
