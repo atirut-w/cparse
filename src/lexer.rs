@@ -93,6 +93,10 @@ impl<'a> Lexer<'a> {
                     TokenKind::Minus
                 }
             }
+            '+' => TokenKind::Plus,
+            '*' => TokenKind::Asterisk,
+            '/' => TokenKind::Slash,
+            '%' => TokenKind::Percent,
 
             _ => {
                 return Err(Error {
@@ -183,9 +187,14 @@ pub enum TokenKind {
     LeftBrace,
     RightBrace,
     Semicolon,
+
     Tilde,
     Minus,
     MinusMinus,
+    Plus,
+    Asterisk,
+    Slash,
+    Percent,
 
     EOF,
 }
