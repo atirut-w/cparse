@@ -127,13 +127,10 @@ impl<'a> Parser<'a> {
                 })
             }
             TokenKind::LeftParen => {
-                self.lexer.next_token()?; // consume the left paren
+                self.lexer.next_token()?;
                 let inner = self.parse_expression(0)?;
                 self.expect_token(&TokenKind::RightParen)?;
-                Ok(Expression::UnaryOp {
-                    op: UnaryOperator::Complement, // This will need proper handling
-                    expr: Box::new(inner),
-                })
+                Ok(inner)
             }
             _ => {
                 let consumed_token = self.lexer.next_token()?;
