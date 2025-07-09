@@ -127,6 +127,7 @@ impl<'a> Parser<'a> {
             (TokenKind::Neq, 30),
             (TokenKind::And, 10),
             (TokenKind::Or, 5),
+            (TokenKind::Question, 3),
             (TokenKind::Eq, 1),
         ]);
 
@@ -137,6 +138,16 @@ impl<'a> Parser<'a> {
                 left = Expression::Assignment {
                     left: Box::new(left),
                     right: Box::new(right),
+                };
+            } else if next.kind == TokenKind::Question {
+                self.lexer.next_token()?;
+                let true_expr = self.parse_expression(0)?;
+                self.expect_token(&TokenKind::Colon)?;
+                let false_expr = self.parse_expression(0)?;
+                left = Expression::Ternary {
+                    condition: Box::new(left),
+                    true_expr: Box::new(true_expr),
+                    false_expr: Box::new(false_expr),
                 };
             } else {
                 let op = self.parse_binary_operator()?;
@@ -292,6 +303,11 @@ pub enum Expression {
     Assignment {
         left: Box<Expression>,
         right: Box<Expression>,
+    },
+    Ternary {
+        condition: Box<Expression>,
+        true_expr: Box<Expression>,
+        false_expr: Box<Expression>,
     },
 }
 
