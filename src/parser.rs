@@ -75,14 +75,32 @@ impl<'a> Parser<'a> {
         let token = self.lexer.peek_token()?;
         match token.kind {
             TokenKind::Return => {
-                self.expect_token(&TokenKind::Return)?;
+                self.lexer.next_token()?;
                 let expr = self.parse_expression(0)?;
                 self.expect_token(&TokenKind::Semicolon)?;
                 Ok(Statement::Return(expr))
             }
             TokenKind::Semicolon => {
-                self.expect_token(&TokenKind::Semicolon)?;
+                self.lexer.next_token()?;
                 Ok(Statement::Null)
+            }
+            TokenKind::If => {
+                self.lexer.next_token()?;
+                self.expect_token(&TokenKind::LeftParen)?;
+                let condition = self.parse_expression(0)?;
+                self.expect_token(&TokenKind::RightParen)?;
+                let then_branch = Box::new(self.parse_statement()?);
+                let else_branch = if self.lexer.peek_token()?.kind == TokenKind::Else {
+                    self.lexer.next_token()?;
+                    Some(Box::new(self.parse_statement()?))
+                } else {
+                    None
+                };
+                Ok(Statement::If {
+                    condition,
+                    then_branch,
+                    else_branch,
+                })
             }
             _ => {
                 let expr = self.parse_expression(0)?;
@@ -250,6 +268,11 @@ pub struct Declaration {
 pub enum Statement {
     Return(Expression),
     Expression(Expression),
+    If {
+        condition: Expression,
+        then_branch: Box<Statement>,
+        else_branch: Option<Box<Statement>>,
+    },
     Null,
 }
 
