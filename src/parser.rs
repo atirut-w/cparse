@@ -26,14 +26,49 @@ impl<'a> Parser<'a> {
         self.expect_token(&TokenKind::LeftParen)?;
         self.expect_token(&TokenKind::RightParen)?;
         self.expect_token(&TokenKind::LeftBrace)?;
-        let body = self.parse_statement()?;
+
+        let mut decls = vec![];
+        while let Ok(token) = self.lexer.peek_token() {
+            if token.kind == TokenKind::RightBrace {
+                break;
+            }
+            if token.kind == TokenKind::Int {
+                let decl = self.parse_declaration()?;
+                decls.push(decl);
+            } else {
+                break;
+            }
+        }
+
+        let mut body = vec![];
+        while let Ok(token) = self.lexer.peek_token() {
+            if token.kind == TokenKind::RightBrace {
+                break;
+            }
+            body.push(self.parse_statement()?);
+        }
+
         self.expect_token(&TokenKind::RightBrace)?;
 
-        Ok(FunctionDefinition { 
+        Ok(FunctionDefinition {
             name,
-            declarations: vec![], // No declarations parsed yet
-            body: vec![body], // Body is a single statement for now
+            declarations: decls,
+            body: body,
         })
+    }
+
+    fn parse_declaration(&mut self) -> Result<Declaration, Error> {
+        self.expect_token(&TokenKind::Int)?;
+        let name = self.expect_identiier()?;
+        let init = if self.lexer.peek_token()?.kind == TokenKind::Eq {
+            self.lexer.next_token()?;
+            Some(self.parse_expression(0)?)
+        } else {
+            None
+        };
+        self.expect_token(&TokenKind::Semicolon)?;
+
+        Ok(Declaration { name, init })
     }
 
     fn parse_statement(&mut self) -> Result<Statement, Error> {
