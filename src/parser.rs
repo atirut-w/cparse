@@ -72,11 +72,24 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_statement(&mut self) -> Result<Statement, Error> {
-        self.expect_token(&TokenKind::Return)?;
-        let expr = self.parse_expression(0)?;
-        self.expect_token(&TokenKind::Semicolon)?;
-
-        Ok(Statement::Return(expr))
+        let token = self.lexer.peek_token()?;
+        match token.kind {
+            TokenKind::Return => {
+                self.expect_token(&TokenKind::Return)?;
+                let expr = self.parse_expression(0)?;
+                self.expect_token(&TokenKind::Semicolon)?;
+                Ok(Statement::Return(expr))
+            }
+            TokenKind::Semicolon => {
+                self.expect_token(&TokenKind::Semicolon)?;
+                Ok(Statement::Null)
+            }
+            _ => {
+                let expr = self.parse_expression(0)?;
+                self.expect_token(&TokenKind::Semicolon)?;
+                Ok(Statement::Expression(expr))
+            }
+        }
     }
 
     fn parse_expression(&mut self, min_prec: u8) -> Result<Expression, Error> {
@@ -96,16 +109,26 @@ impl<'a> Parser<'a> {
             (TokenKind::Neq, 30),
             (TokenKind::And, 10),
             (TokenKind::Or, 5),
+            (TokenKind::Eq, 1),
         ]);
 
         while prec.contains_key(&next.kind) && prec.get(&next.kind).unwrap() >= &min_prec {
-            let op = self.parse_binary_operator()?;
-            let right = self.parse_expression(prec.get(&next.kind).unwrap() + 1)?;
-            left = Expression::BinaryExpression {
-                left: Box::new(left),
-                op,
-                right: Box::new(right),
-            };
+            if next.kind == TokenKind::Eq {
+                self.lexer.next_token()?;
+                let right = self.parse_expression(*prec.get(&next.kind).unwrap())?;
+                left = Expression::Assignment {
+                    left: Box::new(left),
+                    right: Box::new(right),
+                };
+            } else {
+                let op = self.parse_binary_operator()?;
+                let right = self.parse_expression(prec.get(&next.kind).unwrap() + 1)?;
+                left = Expression::BinaryExpression {
+                    left: Box::new(left),
+                    op,
+                    right: Box::new(right),
+                };
+            }
             next = self.lexer.peek_token()?;
         }
         Ok(left)
@@ -115,7 +138,7 @@ impl<'a> Parser<'a> {
         let token = self.lexer.peek_token()?;
         match token.kind {
             TokenKind::IntConstant(value) => {
-                self.lexer.next_token()?; // consume the token
+                self.lexer.next_token()?;
                 Ok(Expression::IntConstant(value))
             }
             TokenKind::Tilde | TokenKind::Minus | TokenKind::Not => {
@@ -131,6 +154,10 @@ impl<'a> Parser<'a> {
                 let inner = self.parse_expression(0)?;
                 self.expect_token(&TokenKind::RightParen)?;
                 Ok(inner)
+            }
+            TokenKind::Identifier(ref id) => {
+                self.lexer.next_token()?;
+                Ok(Expression::Identifier(id.clone()))
             }
             _ => {
                 let consumed_token = self.lexer.next_token()?;
