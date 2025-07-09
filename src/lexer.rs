@@ -61,8 +61,12 @@ impl<'a> Lexer<'a> {
                 TokenKind::IntConstant(number.parse::<i64>().unwrap())
             }
             'a'..='z' | 'A'..='Z' | '_' => {
-                let keywords =
-                    HashMap::from([("int", TokenKind::Int), ("return", TokenKind::Return)]);
+                let keywords = HashMap::from([
+                    ("int", TokenKind::Int),
+                    ("if", TokenKind::If),
+                    ("else", TokenKind::Else),
+                    ("return", TokenKind::Return),
+                ]);
                 let mut identifier = ch.to_string();
 
                 while let Some(_next_ch) = self.peek_char() {
@@ -79,6 +83,7 @@ impl<'a> Lexer<'a> {
                     TokenKind::Identifier(identifier)
                 }
             }
+
             '(' => TokenKind::LeftParen,
             ')' => TokenKind::RightParen,
             '{' => TokenKind::LeftBrace,
@@ -97,6 +102,8 @@ impl<'a> Lexer<'a> {
             '*' => TokenKind::Asterisk,
             '/' => TokenKind::Slash,
             '%' => TokenKind::Percent,
+            '?' => TokenKind::Question,
+            ':' => TokenKind::Colon,
 
             '!' => {
                 if self.peek_char() == Some('=') {
@@ -235,6 +242,8 @@ pub enum TokenKind {
 
     Int,
 
+    If,
+    Else,
     Return,
 
     LeftParen,
@@ -250,6 +259,8 @@ pub enum TokenKind {
     Asterisk,
     Slash,
     Percent,
+    Question,
+    Colon,
 
     Not,
     And,
