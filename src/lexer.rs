@@ -116,6 +116,7 @@ impl<'a> Lexer<'a> {
             '%' => TokenKind::Percent,
             '?' => TokenKind::Question,
             ':' => TokenKind::Colon,
+            ',' => TokenKind::Comma,
 
             '!' => {
                 if self.peek_char() == Some('=') {
@@ -279,6 +280,7 @@ pub enum TokenKind {
     Percent,
     Question,
     Colon,
+    Comma,
 
     Not,
     And,
