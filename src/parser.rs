@@ -79,6 +79,69 @@ impl<'a> Parser<'a> {
                 })
             }
             TokenKind::LeftBrace => Ok(Statement::Compound(self.parse_block()?)),
+            TokenKind::Break => {
+                self.lexer.next_token()?;
+                self.expect_token(&TokenKind::Semicolon)?;
+                Ok(Statement::Break)
+            }
+            TokenKind::Continue => {
+                self.lexer.next_token()?;
+                self.expect_token(&TokenKind::Semicolon)?;
+                Ok(Statement::Continue)
+            }
+            TokenKind::While => {
+                self.lexer.next_token()?;
+                self.expect_token(&TokenKind::LeftParen)?;
+                let condition = self.parse_expression(0)?;
+                self.expect_token(&TokenKind::RightParen)?;
+                let body = Box::new(self.parse_statement()?);
+                Ok(Statement::While {
+                    condition,
+                    body,
+                })
+            }
+            TokenKind::Do => {
+                self.lexer.next_token()?;
+                let body = Box::new(self.parse_statement()?);
+                self.expect_token(&TokenKind::While)?;
+                self.expect_token(&TokenKind::LeftParen)?;
+                let condition = self.parse_expression(0)?;
+                self.expect_token(&TokenKind::RightParen)?;
+                self.expect_token(&TokenKind::Semicolon)?;
+                Ok(Statement::DoWhile {
+                    body,
+                    condition,
+                })
+            }
+            TokenKind::For => {
+                self.lexer.next_token()?;
+                self.expect_token(&TokenKind::LeftParen)?;
+                let init = if self.lexer.peek_token()?.kind != TokenKind::Semicolon {
+                    Some(self.parse_expression(0)?)
+                } else {
+                    None
+                };
+                self.expect_token(&TokenKind::Semicolon)?;
+                let condition = if self.lexer.peek_token()?.kind != TokenKind::Semicolon {
+                    Some(self.parse_expression(0)?)
+                } else {
+                    None
+                };
+                self.expect_token(&TokenKind::Semicolon)?;
+                let increment = if self.lexer.peek_token()?.kind != TokenKind::RightParen {
+                    Some(self.parse_expression(0)?)
+                } else {
+                    None
+                };
+                self.expect_token(&TokenKind::RightParen)?;
+                let body = Box::new(self.parse_statement()?);
+                Ok(Statement::For {
+                    init,
+                    condition,
+                    increment,
+                    body,
+                })
+            }
             _ => {
                 let expr = self.parse_expression(0)?;
                 self.expect_token(&TokenKind::Semicolon)?;
@@ -317,6 +380,22 @@ pub enum Statement {
         else_branch: Option<Box<Statement>>,
     },
     Compound(Block),
+    Break,
+    Continue,
+    While {
+        condition: Expression,
+        body: Box<Statement>,
+    },
+    DoWhile {
+        body: Box<Statement>,
+        condition: Expression,
+    },
+    For {
+        init: Option<Expression>,
+        condition: Option<Expression>,
+        increment: Option<Expression>,
+        body: Box<Statement>,
+    },
     Null,
 }
 
