@@ -66,6 +66,11 @@ impl<'a> Lexer<'a> {
                     ("if", TokenKind::If),
                     ("else", TokenKind::Else),
                     ("return", TokenKind::Return),
+                    ("do", TokenKind::Do),
+                    ("while", TokenKind::While),
+                    ("for", TokenKind::For),
+                    ("break", TokenKind::Break),
+                    ("continue", TokenKind::Continue),
                 ]);
                 let mut identifier = ch.to_string();
 
@@ -245,6 +250,11 @@ pub enum TokenKind {
     If,
     Else,
     Return,
+    Do,
+    While,
+    For,
+    Break,
+    Continue,
 
     LeftParen,
     RightParen,
