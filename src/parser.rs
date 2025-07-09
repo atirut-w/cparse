@@ -179,7 +179,7 @@ impl<'a> Parser<'a> {
                 self.lexer.next_token()?;
                 Ok(Expression::IntConstant(value))
             }
-            TokenKind::Tilde | TokenKind::Minus | TokenKind::Not => {
+            TokenKind::Tilde | TokenKind::Minus | TokenKind::Not | TokenKind::PlusPlus | TokenKind::MinusMinus => {
                 let op = self.parse_unary_operator()?;
                 let inner = self.parse_factor()?;
                 Ok(Expression::UnaryOp {
@@ -195,7 +195,29 @@ impl<'a> Parser<'a> {
             }
             TokenKind::Identifier(ref id) => {
                 self.lexer.next_token()?;
-                Ok(Expression::Identifier(id.clone()))
+                let mut expr = Expression::Identifier(id.clone());
+                
+                // Check for postfix increment/decrement
+                let next_token = self.lexer.peek_token()?;
+                match next_token.kind {
+                    TokenKind::PlusPlus => {
+                        self.lexer.next_token()?;
+                        expr = Expression::UnaryOp {
+                            op: UnaryOperator::PostIncrement,
+                            expr: Box::new(expr),
+                        };
+                    }
+                    TokenKind::MinusMinus => {
+                        self.lexer.next_token()?;
+                        expr = Expression::UnaryOp {
+                            op: UnaryOperator::PostDecrement,
+                            expr: Box::new(expr),
+                        };
+                    }
+                    _ => {}
+                }
+                
+                Ok(expr)
             }
             _ => {
                 let consumed_token = self.lexer.next_token()?;
@@ -213,6 +235,8 @@ impl<'a> Parser<'a> {
             TokenKind::Tilde => Ok(UnaryOperator::Complement),
             TokenKind::Minus => Ok(UnaryOperator::Negate),
             TokenKind::Not => Ok(UnaryOperator::Not),
+            TokenKind::PlusPlus => Ok(UnaryOperator::PreIncrement),
+            TokenKind::MinusMinus => Ok(UnaryOperator::PreDecrement),
             _ => Err(Error {
                 message: format!("Expected unary operator, found {:?}", token.kind),
                 span: token.span,
@@ -331,6 +355,10 @@ pub enum UnaryOperator {
     Complement,
     Negate,
     Not,
+    PreIncrement,
+    PreDecrement,
+    PostIncrement,
+    PostDecrement,
 }
 
 #[derive(Debug)]

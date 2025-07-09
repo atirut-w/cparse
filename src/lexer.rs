@@ -103,7 +103,14 @@ impl<'a> Lexer<'a> {
                     TokenKind::Minus
                 }
             }
-            '+' => TokenKind::Plus,
+            '+' => {
+                if self.peek_char() == Some('+') {
+                    self.next_char(); // Consume the second '+'
+                    TokenKind::PlusPlus
+                } else {
+                    TokenKind::Plus
+                }
+            }
             '*' => TokenKind::Asterisk,
             '/' => TokenKind::Slash,
             '%' => TokenKind::Percent,
@@ -266,6 +273,7 @@ pub enum TokenKind {
     Minus,
     MinusMinus,
     Plus,
+    PlusPlus,
     Asterisk,
     Slash,
     Percent,
