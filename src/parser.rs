@@ -25,35 +25,11 @@ impl<'a> Parser<'a> {
         let name = self.expect_identiier()?;
         self.expect_token(&TokenKind::LeftParen)?;
         self.expect_token(&TokenKind::RightParen)?;
-        self.expect_token(&TokenKind::LeftBrace)?;
-
-        let mut decls = vec![];
-        while let Ok(token) = self.lexer.peek_token() {
-            if token.kind == TokenKind::RightBrace {
-                break;
-            }
-            if token.kind == TokenKind::Int {
-                let decl = self.parse_declaration()?;
-                decls.push(decl);
-            } else {
-                break;
-            }
-        }
-
-        let mut body = vec![];
-        while let Ok(token) = self.lexer.peek_token() {
-            if token.kind == TokenKind::RightBrace {
-                break;
-            }
-            body.push(self.parse_statement()?);
-        }
-
-        self.expect_token(&TokenKind::RightBrace)?;
+        let body = self.parse_block()?;
 
         Ok(FunctionDefinition {
             name,
-            declarations: decls,
-            body: body,
+            body,
         })
     }
 
@@ -102,12 +78,45 @@ impl<'a> Parser<'a> {
                     else_branch,
                 })
             }
+            TokenKind::LeftBrace => Ok(Statement::Compound(self.parse_block()?)),
             _ => {
                 let expr = self.parse_expression(0)?;
                 self.expect_token(&TokenKind::Semicolon)?;
                 Ok(Statement::Expression(expr))
             }
         }
+    }
+
+    fn parse_block(&mut self) -> Result<Block, Error> {
+        self.expect_token(&TokenKind::LeftBrace)?;
+
+        let mut decls = vec![];
+        while let Ok(token) = self.lexer.peek_token() {
+            if token.kind == TokenKind::RightBrace {
+                break;
+            }
+            if token.kind == TokenKind::Int {
+                let decl = self.parse_declaration()?;
+                decls.push(decl);
+            } else {
+                break;
+            }
+        }
+
+        let mut body = vec![];
+        while let Ok(token) = self.lexer.peek_token() {
+            if token.kind == TokenKind::RightBrace {
+                break;
+            }
+            body.push(self.parse_statement()?);
+        }
+
+        self.expect_token(&TokenKind::RightBrace)?;
+
+        Ok(Block {
+            declarations: decls,
+            statements: body,
+        })
     }
 
     fn parse_expression(&mut self, min_prec: u8) -> Result<Expression, Error> {
@@ -265,8 +274,7 @@ pub struct TranslationUnit {
 #[derive(Debug)]
 pub struct FunctionDefinition {
     pub name: String,
-    pub declarations: Vec<Declaration>,
-    pub body: Vec<Statement>,
+    pub body: Block,
 }
 
 #[derive(Debug)]
@@ -284,7 +292,14 @@ pub enum Statement {
         then_branch: Box<Statement>,
         else_branch: Option<Box<Statement>>,
     },
+    Compound(Block),
     Null,
+}
+
+#[derive(Debug)]
+pub struct Block {
+    pub declarations: Vec<Declaration>,
+    pub statements: Vec<Statement>,
 }
 
 #[derive(Debug)]
